@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
-import { DenominationCount, MoneyState } from '../types/money';
+import { MoneyState, DenominationCount } from '../types/money';
+import { useCashRegister } from './useCashRegister';
 
-const INITIAL_BILLS = [
+const INITIAL_BILLS: DenominationCount[] = [
   { value: 1000, count: 0 },
   { value: 500, count: 0 },
   { value: 200, count: 0 },
@@ -15,6 +16,8 @@ export const useMoney = () => {
     bills: INITIAL_BILLS,
     coins: 0,
   });
+
+  const { addEvent } = useCashRegister();
 
   const updateBillCount = useCallback((denomination: number, count: number) => {
     setState((prev) => ({
@@ -47,11 +50,25 @@ export const useMoney = () => {
     });
   }, []);
 
+  const registerWithdrawal = useCallback(() => {
+    const total = calculateTotal(state);
+    if (total > 0) {
+      addEvent({
+        type: 'withdrawal',
+        amount: total,
+        description: 'Retiro',
+        details: { ...state },
+      });
+      resetCounts();
+    }
+  }, [state, calculateTotal, resetCounts, addEvent]);
+
   return {
     state,
     updateBillCount,
     updateCoins,
     calculateTotal,
     resetCounts,
+    registerWithdrawal,
   };
 };
