@@ -16,6 +16,7 @@ import { SalesGoals } from './components/sales/SalesGoals';
 import { ScheduleTable } from './components/schedule/ScheduleTable';
 import { CashRegister } from './components/cash/CashRegister';
 import { AboutSection } from './components/about/AboutSection';
+import { SettingsSection } from './components/settings/SettingsSection';
 import { useCashRegister } from './hooks/useCashRegister';
 
 const App: React.FC = () => {
@@ -99,6 +100,8 @@ const App: React.FC = () => {
           return <CashRegister />;
         case 'about':
           return <AboutSection />;
+        case 'settings':
+          return <SettingsSection />;
         default:
           return null;
       }
