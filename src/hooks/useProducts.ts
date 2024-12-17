@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Product, ProductSearchState } from '../types/product';
 import { supabase } from '../lib/supabase';
+import { sortProductsByType } from '../utils/productSort';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export const useProducts = () => {
@@ -35,7 +36,7 @@ export const useProducts = () => {
       setState(prev => ({
         ...prev,
         products,
-        filteredProducts: filterProducts(products, prev.query),
+        filteredProducts: sortProductsByType(filterProducts(products, prev.query)),
       }));
     } catch (error) {
       console.error('Error:', error);
@@ -44,7 +45,7 @@ export const useProducts = () => {
 
   const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('codigos')
         .insert([{
           label: product.label,
@@ -53,13 +54,17 @@ export const useProducts = () => {
           type: product.type,
           description: product.description || null,
           tags: product.tags?.length ? product.tags.join(',') : null,
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) {
         console.error('Error adding product:', error);
         return false;
       }
 
+      // Refresh products list
+      await fetchProducts();
       return true;
     } catch (error) {
       console.error('Error:', error);
@@ -79,6 +84,8 @@ export const useProducts = () => {
         return false;
       }
 
+      // Refresh products list
+      await fetchProducts();
       return true;
     } catch (error) {
       console.error('Error:', error);
@@ -86,7 +93,7 @@ export const useProducts = () => {
     }
   };
 
-  const filterProducts = (products: Product[], query: string) => {
+  const filterProducts = useCallback((products: Product[], query: string) => {
     const searchTerm = query.toLowerCase();
     return products.filter((product) => (
       product.code?.toLowerCase().includes(searchTerm) ||
@@ -96,7 +103,15 @@ export const useProducts = () => {
       product.description?.toLowerCase().includes(searchTerm) ||
       product.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
     ));
-  };
+  }, []);
+
+  const updateQuery = useCallback((query: string) => {
+    setState((prev) => ({
+      ...prev,
+      query,
+      filteredProducts: sortProductsByType(filterProducts(prev.products, query)),
+    }));
+  }, [filterProducts]);
 
   useEffect(() => {
     let channel: RealtimeChannel;
@@ -127,14 +142,6 @@ export const useProducts = () => {
         supabase.removeChannel(channel);
       }
     };
-  }, []);
-
-  const updateQuery = useCallback((query: string) => {
-    setState((prev) => ({
-      ...prev,
-      query,
-      filteredProducts: filterProducts(prev.products, query),
-    }));
   }, []);
 
   return {
