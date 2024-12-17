@@ -13,6 +13,7 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
+  Chip
 } from '@nextui-org/react';
 import {
   Menu,
@@ -29,8 +30,8 @@ interface TopNavProps {
 }
 
 const notifications = [
-  { id: 1, title: 'Nueva venta realizada', time: 'Hace 5 minutos' },
-  { id: 2, title: 'Membresía renovada', time: 'Hace 1 hora' },
+  { id: 1, title: 'Has llegado a tu meta minima', time: 'Hace 5 minutos' },
+  { id: 2, title: 'Has llegado a tu meta de nichos', time: 'Hace 1 hora' },
   { id: 3, title: 'Actualización del sistema', time: 'Hace 2 horas' },
 ];
 
@@ -69,10 +70,10 @@ export const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
-              <div className="px-1 py-2">
-                <p className="text-small font-bold text-foreground pb-2">
-                  Notificaciones
-                </p>
+              <div className="px-1 py-2 w-full">
+                <div className="text-small font-bold text-foreground pb-2 flex justify-between items-center ">
+                  <div>Notificaciones</div>  <Chip isDisabled color="primary" size="sm" variant="bordered" className="px-3">Próximamente</Chip>
+                </div>
                 <div className="divide-y divide-default-300">
                   {notifications.map((notification) => (
                     <div
