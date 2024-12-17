@@ -1,10 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { MembershipState, MembershipType, DailyMembershipReport } from '../types/membership';
+import { getLocalDate } from '../utils/date';
+import { getMembershipReport, saveMembershipReport } from '../utils/membershipStorage';
 
 const INITIAL_MEMBERSHIPS: MembershipType[] = [
   { id: 'classic', name: 'Clásica', price: 10, count: 0 },
   { id: 'benefits', name: 'Benefits', price: 15, count: 0 },
   { id: 'plus', name: 'Plus', price: 25, count: 0 },
+  { id: 'upgrade', name: 'Upgrade', price: 50, count: 0 },
 ];
 
 export const useMemberships = () => {
@@ -13,21 +16,6 @@ export const useMemberships = () => {
     visits: 0,
   });
 
-  const saveDailyReport = useCallback((newState: MembershipState) => {
-    const today = new Date().toISOString().split('T')[0];
-    const report: DailyMembershipReport = {
-      date: today,
-      memberships: newState.memberships,
-      visits: newState.visits,
-      totalAmount: newState.memberships.reduce(
-        (sum, membership) => sum + membership.price * membership.count,
-        0
-      ),
-    };
-
-    localStorage.setItem(`membershipReport_${today}`, JSON.stringify(report));
-  }, []);
-
   const updateMembershipCount = useCallback((id: string, count: number) => {
     setState((prev) => {
       const newState = {
@@ -35,12 +23,14 @@ export const useMemberships = () => {
         memberships: prev.memberships.map((membership) =>
           membership.id === id ? { ...membership, count } : membership
         ),
+        // Increment visits when a membership is added
+        visits: prev.visits + (count > prev.memberships.find(m => m.id === id)?.count! ? 1 : 0)
       };
       
-      saveDailyReport(newState);
+      saveMembershipReport(newState);
       return newState;
     });
-  }, [saveDailyReport]);
+  }, []);
 
   const updateVisitCount = useCallback((count: number) => {
     setState((prev) => {
@@ -49,10 +39,10 @@ export const useMemberships = () => {
         visits: count,
       };
       
-      saveDailyReport(newState);
+      saveMembershipReport(newState);
       return newState;
     });
-  }, [saveDailyReport]);
+  }, []);
 
   const calculateTotal = useCallback((state: MembershipState): number => {
     return state.memberships.reduce(
@@ -67,25 +57,26 @@ export const useMemberships = () => {
       visits: 0,
     };
     setState(newState);
-    saveDailyReport(newState);
-  }, [saveDailyReport]);
-
-  const getDailyReport = useCallback((date: string): DailyMembershipReport | null => {
-    const savedReport = localStorage.getItem(`membershipReport_${date}`);
-    return savedReport ? JSON.parse(savedReport) : null;
+    saveMembershipReport(newState);
   }, []);
 
   // Load today's report if exists
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const savedReport = getDailyReport(today);
+    const today = getLocalDate();
+    const savedReport = getMembershipReport(today);
     if (savedReport) {
+      // Ensure all membership types are present
+      const memberships = INITIAL_MEMBERSHIPS.map(initialMembership => {
+        const savedMembership = savedReport.memberships.find(m => m.id === initialMembership.id);
+        return savedMembership || { ...initialMembership, count: 0 };
+      });
+
       setState({
-        memberships: savedReport.memberships,
+        memberships,
         visits: savedReport.visits,
       });
     }
-  }, [getDailyReport]);
+  }, []);
 
   return {
     state,
@@ -93,6 +84,5 @@ export const useMemberships = () => {
     updateVisitCount,
     calculateTotal,
     resetCounts,
-    getDailyReport,
   };
 };
