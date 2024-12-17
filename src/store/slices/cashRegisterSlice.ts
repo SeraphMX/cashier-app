@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { CashEvent } from '../../types/cash';
+import { getLocalDate } from '../../utils/date';
 
 interface CashRegisterState {
   events: CashEvent[];
@@ -7,7 +8,7 @@ interface CashRegisterState {
 }
 
 const loadInitialState = (): CashRegisterState => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDate();
   const savedEvents = localStorage.getItem(`cashEvents_${today}`);
   const registerStatus = localStorage.getItem(`registerStatus_${today}`);
 
@@ -20,7 +21,7 @@ const loadInitialState = (): CashRegisterState => {
 const initialState: CashRegisterState = loadInitialState();
 
 const saveEvents = (events: CashEvent[]) => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDate();
   localStorage.setItem(`cashEvents_${today}`, JSON.stringify(events));
 };
 
@@ -39,12 +40,12 @@ const cashRegisterSlice = createSlice({
     },
     closeRegister: (state) => {
       state.isRegisterClosed = true;
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDate();
       localStorage.setItem(`registerStatus_${today}`, 'closed');
     },
     openRegister: (state) => {
       state.isRegisterClosed = false;
-      const today = new Date().toISOString().split('T')[0];
+      const today = getLocalDate();
       localStorage.removeItem(`registerStatus_${today}`);
     },
     clearAllData: (state) => {
