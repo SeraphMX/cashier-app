@@ -118,6 +118,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   value={formData.code}
                   onValueChange={(value) => setFormData({ ...formData, code: value })}
                   isRequired
+                  type="number"
                 />
 
                 <div className="flex items-center gap-2">
