@@ -18,7 +18,7 @@ export const TotalDisplay: React.FC<TotalDisplayProps> = ({
       <CardBody>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Calculator className="w-6 h-6 text-primary" />
+            
             <div>
               <div className="text-sm text-default-500">Total</div>
               <div className="text-2xl font-bold text-primary">
