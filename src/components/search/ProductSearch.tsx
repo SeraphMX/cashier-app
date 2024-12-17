@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Input, Button } from '@nextui-org/react';
-import { Search, Scan, Plus } from 'lucide-react';
 import { Product } from '../../types/product';
 import { ProductCard } from './ProductCard';
 import { BarcodeScanner } from './BarcodeScanner';
 import { ProductForm } from './ProductForm';
+import { SearchHeader } from './SearchHeader';
 
 interface ProductSearchProps {
   query: string;
@@ -37,35 +36,14 @@ export const ProductSearch: React.FC<ProductSearchProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
-        <Input
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Buscar por código o etiqueta..."
-          startContent={<Search className="w-4 h-4 text-default-400" />}
-          classNames={{
-            input: "text-small",
-          }}
-          className="flex-1"
-        />
-        <Button
-          isIconOnly
-          color="primary"
-          variant="flat"
-          onPress={() => setIsScannerOpen(true)}
-        >
-          <Scan className="w-5 h-5" />
-        </Button>
-        <Button
-          isIconOnly
-          color="primary"
-          onPress={() => setIsFormOpen(true)}
-        >
-          <Plus className="w-5 h-5" />
-        </Button>
-      </div>
+      <SearchHeader
+        query={query}
+        onQueryChange={onQueryChange}
+        onScanClick={() => setIsScannerOpen(true)}
+        onAddClick={() => setIsFormOpen(true)}
+      />
       
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-2 pt-16">
         {products.map((product) => (
           <ProductCard 
             key={product.id} 
